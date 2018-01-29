@@ -1,0 +1,120 @@
+---
+swagger: '2.0'
+########################
+# API Info
+########################
+info:
+  title: Azure service example
+  description: This is an example of a basic azure function event service with a single
+    operation.
+  version: "1.0"
+  contact:
+    name: Ryan Kucera
+    email: ryankucera@exosite.com
+########################
+# config
+########################
+x-exosite-config-parameters:
+- name: code
+  description: Code key from Azure Portal
+  type: string
+  required: true
+  pattern: "^[0-9a-zA-Z]{54}==$"
+- name: clientId
+  description: Client identifier from Azure Portal
+  type: string
+  required: true
+  pattern: "^[0-9a-zA-Z]$"
+securityDefinitions:
+  code:
+    in: query
+    name: code
+    type: apiKey
+  clientId:
+    in: query
+    name: clientId
+    type: apiKey
+basePath: "/"
+host: ryankucera.azurewebsites.net
+x-healthPath: "/"
+paths:
+  "/":
+    get:
+      operationId: gethealth
+      summary: GET /health
+      x-internal-use: true
+      description: The health check endpoint used by Pegasus
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            description: Response content
+        default:
+          description: error
+          schema:
+            $ref:       "#/definitions/ErrorResponse"
+  "/api/openapi/?code={code}&clientId={clientId}":
+    post:
+      operationId: send
+      summary: Send data
+      description: This Operation sends data.
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: string
+            description: Response
+        default:
+          description: error
+          schema:
+            $ref:       "#/definitions/ErrorResponse"
+      parameters:
+      - name: name
+        in: body
+        description: The body content
+        schema:
+          type: object
+          description: body content
+          required:
+          - name
+          properties:
+            name:
+              description: data name
+              type: string
+              default: "none"
+      - name: code
+        in: path
+        required: true
+        description: API code for user Auth.
+        type: string
+        default: "default"
+      - name: clientId
+        in: path
+        required: true
+        description: ClientId token for user Auth.
+        type: string
+        default: "default"
+consumes:
+- application/json
+produces:
+- application/json
+schemes:
+- https
+######
+# definitions
+######
+definitions:
+  ErrorResponse:
+    description: Request error
+    type: object
+    properties:
+      error:
+        type: string
+        description: Error message
+      status:
+        type: integer
+        description: Response code
+      type:
+        type: string
+        description: Error type
